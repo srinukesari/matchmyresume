@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: match-my-resume-backend
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
