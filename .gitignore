@@ -1,0 +1,20 @@
+# Node
+node_modules/
+
+# Python virtual envs
+venv/
+env/
+.venv/
+pyenv/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+
