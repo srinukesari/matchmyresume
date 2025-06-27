@@ -79,23 +79,28 @@ function ScoreCard({ scores, missingKeywords, suggestions }) {
             sx={{ fontWeight: "bold", marginTop: 2 }}>
             Missing Keywords:
           </Typography>
-          <List>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              marginTop: 1,
+            }}>
             {missingKeywords?.map((keyword, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={keyword} />
-              </ListItem>
+              <Box
+                key={index}
+                sx={{
+                  padding: "4px 8px",
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "0.875rem",
+                  color: "#333",
+                }}>
+                {keyword}
+              </Box>
             ))}
-          </List>
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-            Suggestions:
-          </Typography>
-          <List>
-            {suggestions?.map((suggestion, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={suggestion} />
-              </ListItem>
-            ))}
-          </List>
+          </Box>
         </Box>
       </Collapse>
       <List
