@@ -1,26 +1,47 @@
-from sentence_transformers import SentenceTransformer, util
 import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
 nlp = spacy.load("en_core_web_sm")
-
-def score_resume_jd(resume_text: str, jd_text: str) -> float:
-    # Encode texts
-    embeddings_resume = model.encode(resume_text, convert_to_tensor=True)
-    embeddings_jd = model.encode(jd_text, convert_to_tensor=True)
-
-    # Cosine similarity
-    cosine_score = util.pytorch_cos_sim(embeddings_resume, embeddings_jd)
-    score = float(cosine_score.item()) * 100  # scale 0-100
-
-    return round(score, 2)
 
 # Add noisy terms that should never appear as keywords
 BLACKLIST = {
-    "summary", "description", "hands", "experience", "profile", "work",
-    "details", "objectives", "introduction", "responsibilities", "activities",
-    "strengths", "team", "career", "goals"
+    'interactions', 'correspondences', 'programs', 'self-control', 
+    'interoperability', 'leadership', 'insight', 'resilience', 'institutions',
+    'cooperation', 'certifications', 'alliances', 'details', 'query performance', 
+    'profile', 'strategies', 'quality', 'management', 'governance', 'self-actualization', 
+    'communications', 'participation', 'self-discovery', 'self-fulfillment', 'self-sufficiency', 
+    'self-expression', 'responsibility', 'best practices', 'infrastructures', 'self-confidence', 
+    'software', 'strengths', 'qualifications', 'missions', 'structures', 'designs', 'invention', 
+    'roles', 'career', 'sustainability', 'aims', 'equipment', 'coordination', 'reviews', 
+    'self-sustainability', 'memos', 'goals', 'conflict-resolution', 'flexibility', 'instruments', 
+    'discussions', 'new things', 'personal', 'knowledge', 'aspirations', 'learning', 'awareness', 
+    'exploration', 'supplies', 'materials', 'teams', 'self-reliance', 'entities', 'self-management', 
+    'familiarity', 'scalability', 'skills', 'compatibility', 'self-reflection', 'involvement', 
+    'schedule', 'information', 'highlights', 'attributes', 'platforms', 'ambiguity', 'relational', 
+    'support', 'integration', 'methods', 'abilities', 'advice', 'assessments', 'experience', 
+    'related field', 'oversight', 'capability', 'self-motivation', 'plans', 'self-realization', 
+    'capacity-building', 'dialogues', 'records', 'counsel', 'operation', 'contribution', 
+    'self-direction', 'motivation', 'work', 'conversations', 'comments', 'background', 'files', 
+    'awards', 'technologies', 'self-governance', 'traits', 'influence', 'contact', 'ambitions', 
+    'competencies', 'personal-development', 'effectiveness', 'activities', 'problem-solving', 
+    'guidelines', 'inspiration', 'end', 'career-development', 'productivity', 'approaches', 
+    'growth', 'empowerment', 'self-discipline', 'organizations', 'comprehension', 
+    'talent-development', 'documents', 'training', 'functionality', 
+    'reliability', 'collaboration', 'letters', 'resources', 'professional-development', 
+    'achievements', 'relationships', 'development', 'objectives', 'expertise', 'engagement', 
+    'messages', 'study', 'techniques', 'authority', 'analyses', 'self-leadership', 'summary', 
+    'exchanges', 'accountability', 'overview', 'suggestions', 'execution', 'tools', 
+    'self-awareness', 'interaction', 'self-regulation', 'architectures', 'hands', 'systems', 
+    'consultation', 'devices', 'applications', 'efficiency', 'groups', 'implementation', 
+    'tactics', 'adaptability', 'self-worth', 'frameworks', 'creativity', 'accessibility', 
+    'introduction', 'engagements', 'projects', 'new', 'skill-building', 'team', 'networks', 
+    'usability', 'negotiation', 'standards', 'education', 'partnerships', 'processes', 'qualities',
+    'persuasion', 'self-organization', 'visions', 'feedback', 'duties', 'reports', 'procedures',
+    'policies', 'innovation', 'decision-making', 'aid', 'capabilities', 'summaries', 'self-esteem', 
+    'notes', 'evaluations', 'emails', 'self-respect', 'tasks', 'guidance', 'assistance', 
+    'understanding', 'discovery', 'references', 'description', 'connections', 'self-improvement', 
+    'help', 'responsibilities', 'recommendations', 'targets', 'research', 'performance', 
+    'communication', "computer science fundamentals", "bachelor’s degree"
 }
 
 def extract_keywords(text: str) -> set:
@@ -41,27 +62,3 @@ def extract_keywords(text: str) -> set:
             keywords.add(cleaned)
 
     return keywords
-
-def analyze_resume(resume_text: str, jd_text: str) -> dict:
-    # Score with embedding similarity
-    embeddings_resume = model.encode(resume_text, convert_to_tensor=True)
-    embeddings_jd = model.encode(jd_text, convert_to_tensor=True)
-    score = float(util.pytorch_cos_sim(embeddings_resume, embeddings_jd))
-    score = round(score * 100, 2)
-
-    # Keyword match analysis
-    resume_keywords = extract_keywords(resume_text)
-    jd_keywords = extract_keywords(jd_text)
-
-    matched = list(jd_keywords & resume_keywords)
-    gaps = list(jd_keywords - resume_keywords)
-
-    # Simple suggestions
-    suggestions = [f"Consider adding experience with '{kw}'" for kw in gaps[:5]]
-
-    return {
-        "score": score,
-        "matched_keywords": matched[:10],
-        "missing_keywords": gaps[:10],
-        "suggestions": suggestions
-    }

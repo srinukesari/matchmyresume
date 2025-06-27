@@ -1,10 +1,16 @@
-from fastapi import FastAPI, UploadFile, File
-from typing import List
 from utils.extract import extract_text
-from utils.scorer import score_resume_jd, analyze_resume
-from pydantic import BaseModel
-from typing import Dict
+from utils.scorer import extract_keywords
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
+from typing import Dict, List
+import os
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from openai import OpenAI
+import uvicorn
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
@@ -21,10 +27,6 @@ class ScoreRequest(BaseModel):
     resumes: Dict[str, str]
     job_description: str
 
-class AnalysisRequest(BaseModel):
-    resumes: Dict[str, str]
-    job_description: str
-
 @app.post("/upload-resumes/")
 async def upload_resumes(files: List[UploadFile] = File(...)):
     extracted = {}
@@ -32,47 +34,45 @@ async def upload_resumes(files: List[UploadFile] = File(...)):
         extracted[file.filename] = extract_text(file)
     return {"resumes": extracted}
 
-@app.post("/upload-jd/")
-async def upload_job_description_text(jd_text: str):
-    return {"job_description": jd_text}
+def get_embedding(text: str, model: str = "text-embedding-3-small") -> list[float]:
+    response = client.embeddings.create(
+        model=model,
+        input=text
+    )
+    return response.data[0].embedding
 
-@app.post("/score-resumes/")
-async def score_resumes(data: ScoreRequest):
-    results = {}
-    for filename, resume_text in data.resumes.items():
-        score = score_resume_jd(resume_text, data.job_description)
-        results[filename] = score
-    sorted_results = dict(sorted(results.items(), key=lambda item: item[1], reverse=True))
-    return sorted_results
+@app.post("/score")
+def score_resumes(payload: ScoreRequest):
+    
+    jd_embedding = np.array(get_embedding(payload.job_description)).reshape(1, -1)
+    scores = {}
+    best_filename = None
+    best_score = -1
 
+    for filename, resume_text in payload.resumes.items():
+        res_embedding = np.array(get_embedding(resume_text)).reshape(1, -1)
+        score = float(cosine_similarity(jd_embedding, res_embedding)[0][0])
+        scores[filename] = round(score*100, 2)
+        if score > best_score:
+            best_score = round(score*100, 2)
+            best_filename = filename
 
-@app.post("/analyze-resumes/")
-async def analyze_resumes(data: AnalysisRequest):
-    analysis_results = {}
-    for filename, resume_text in data.resumes.items():
-        analysis = analyze_resume(resume_text, data.job_description)
-        analysis_results[filename] = analysis
+    # Analytics for top resume
+    top_resume_text = payload.resumes[best_filename]
+    jd_keywords = set(extract_keywords(payload.job_description))
+    res_keywords = set(extract_keywords(top_resume_text))
 
-    # Find top scoring resume
-    top_resume, top_data = max(analysis_results.items(), key=lambda x: x[1]["score"])
-
-    all_resumes = {
-        name: analysis["score"]
-        for name, analysis in analysis_results.items()
-    }
+    missing = list(jd_keywords - res_keywords)
 
     return {
-        "top_resume": top_resume,
-        "top_score": top_data["score"],
-        "matched_keywords": top_data["matched_keywords"],
-        "missing_keywords": top_data["missing_keywords"],
-        "suggestions": top_data["suggestions"],
-        "results": all_resumes
+        "top_resume": best_filename,
+        "top_score": best_score,
+        "missing_keywords": missing,
+        "results": scores
     }
 
 if __name__ == "__main__":
-    import uvicorn
-    import os
+    
 
     port = int(os.environ.get("PORT", 10000))  # fallback if not set
     uvicorn.run("main:app", host="0.0.0.0", port=port)
