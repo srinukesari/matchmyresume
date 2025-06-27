@@ -1,7 +1,6 @@
-import spacy
-from spacy.lang.en.stop_words import STOP_WORDS
 
-nlp = spacy.load("en_core_web_sm")
+from openai import OpenAI
+import os
 
 # Add noisy terms that should never appear as keywords
 BLACKLIST = {
@@ -41,24 +40,32 @@ BLACKLIST = {
     'notes', 'evaluations', 'emails', 'self-respect', 'tasks', 'guidance', 'assistance', 
     'understanding', 'discovery', 'references', 'description', 'connections', 'self-improvement', 
     'help', 'responsibilities', 'recommendations', 'targets', 'research', 'performance', 
-    'communication', "computer science fundamentals", "bachelor’s degree"
+    'communication', "computer science fundamentals", "bachelor’s degree", "communication skills"
 }
 
-def extract_keywords(text: str) -> set:
-    doc = nlp(text.lower())
-    keywords = set()
 
-    for chunk in doc.noun_chunks:
-        cleaned = chunk.text.strip()
+def extract_keywords(client,text):
+    prompt = f"""
+Extract the most relevant keywords from the following text. Focus on important skills, technologies, roles, and industries. Return them as a comma-separated list.
 
-        if (
-            len(cleaned) >= 3 and
-            cleaned not in STOP_WORDS and
-            not any(word in STOP_WORDS for word in cleaned.split()) and
-            not cleaned.isnumeric() and
-            cleaned not in BLACKLIST and
-            not any(bad in cleaned for bad in BLACKLIST)
-        ):
-            keywords.add(cleaned)
+Text:
+\"\"\"
+{text}
+\"\"\"
+"""
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant who extracts keywords from job-related documents."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+
+    keywords = response.choices[0].message.content.strip()
+    keywords = [kw.strip() for kw in keywords.split(",")]
+    keywords = [kw.lower() for kw in keywords if kw.lower() not in BLACKLIST and len(kw) > 2]
 
     return keywords
+
+

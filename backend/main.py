@@ -59,8 +59,8 @@ def score_resumes(payload: ScoreRequest):
 
     # Analytics for top resume
     top_resume_text = payload.resumes[best_filename]
-    jd_keywords = set(extract_keywords(payload.job_description))
-    res_keywords = set(extract_keywords(top_resume_text))
+    jd_keywords = set(extract_keywords(client,payload.job_description))
+    res_keywords = set(extract_keywords(client,top_resume_text))
 
     missing = list(jd_keywords - res_keywords)
 
@@ -72,7 +72,5 @@ def score_resumes(payload: ScoreRequest):
     }
 
 if __name__ == "__main__":
-    
-
     port = int(os.environ.get("PORT", 10000))  # fallback if not set
     uvicorn.run("main:app", host="0.0.0.0", port=port)
