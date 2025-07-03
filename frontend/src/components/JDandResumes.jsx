@@ -18,6 +18,7 @@ function JDandResumes({ setJdText, resumeFiles = [], setResumeFiles }) {
     <Box
       sx={{
         display: "flex",
+        flexDirection: { xs: "column", md: "row" },
         justifyContent: "space-between",
         gap: 2,
         marginBottom: 2,

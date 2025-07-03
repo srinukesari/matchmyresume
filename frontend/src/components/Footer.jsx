@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import TwitterIcon from "@mui/icons-material/Twitter";
+import LanguageIcon from "@mui/icons-material/Language";
 
 const Footer = () => {
   const theme = useTheme();
@@ -41,7 +42,7 @@ const Footer = () => {
           rel="noopener noreferrer"
           aria-label="LinkedIn"
           sx={{ mr: 1 }}>
-          <IconButton size="small">
+          <IconButton size="small" title="LinkedIn">
             <LinkedInIcon />
           </IconButton>
         </Link>
@@ -49,9 +50,19 @@ const Footer = () => {
           href="https://twitter.com/srinukesari"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Twitter">
-          <IconButton size="small">
+          aria-label="Twitter"
+          sx={{ mr: 1 }}>
+          <IconButton size="small" title="Twitter">
             <TwitterIcon />
+          </IconButton>
+        </Link>
+        <Link
+          href="https://srinukesari.netlify.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Portfolio">
+          <IconButton size="small" title="Portfolio">
+            <LanguageIcon />
           </IconButton>
         </Link>
       </Box>
