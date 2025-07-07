@@ -15,7 +15,7 @@ export default function App() {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BASE_URL = "https://matchmyresume-wi6v.onrender.com";
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
