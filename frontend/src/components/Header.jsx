@@ -8,7 +8,6 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import JoinInnerOutlinedIcon from "@mui/icons-material/JoinInnerOutlined";
 
 const Header = () => {
   const theme = useTheme();
@@ -41,7 +40,11 @@ const Header = () => {
               alignItems: "center",
               marginLeft: isMobile ? 0 : 4,
             }}>
-            <JoinInnerOutlinedIcon sx={{ fontSize: "inherit" }} />
+            <img
+              src="https://img.icons8.com/?size=100&id=117479&format=png&color=000000"
+              alt="logo"
+              style={{ width: 40, height: 40, marginRight: 8 }}
+            />
             matchMYresume
           </Typography>
         </Box>
